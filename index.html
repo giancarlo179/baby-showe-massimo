@@ -1,0 +1,1553 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Baby Shower · Massimo Gonzalo</title>
+  <meta name="description" content="Un nuevo entrenador está a punto de aparecer. Baby Shower de Massimo Gonzalo." />
+
+  <!-- Leaflet (Mapa) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- QRCode.js -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+  <!-- Add-to-Calendar Button -->
+  <script src="https://cdn.jsdelivr.net/npm/add-to-calendar-button@2" async defer></script>
+
+  <style>
+    :root{
+      --bg0:#070A12;
+      --bg1:#0B1022;
+      --card:#0E1633CC;
+      --stroke:#223067;
+      --text:#EAF0FF;
+      --muted:#A9B6E6;
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+
+      /* Accent (cambia por equipo) */
+      --accent:#4FE39A; /* Bulba default */
+      --accent2:#2BD1FF;
+
+      --radius:18px;
+      --radius2:28px;
+      --ring: 0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent);
+    }
+
+    [data-theme="light"]{
+      --bg0:#F6F8FF;
+      --bg1:#EAF0FF;
+      --card:#FFFFFFD9;
+      --stroke:#D7E0FF;
+      --text:#0C1430;
+      --muted:#3B4A7C;
+      --shadow: 0 18px 50px rgba(18,27,55,.12);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background: radial-gradient(1200px 900px at 20% 10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
+                  radial-gradient(900px 600px at 80% 0%, color-mix(in srgb, var(--accent2) 12%, transparent), transparent 60%),
+                  linear-gradient(180deg,var(--bg0),var(--bg1));
+      overflow-x:hidden;
+    }
+
+    /* Fondo animado */
+    .bg-anim::before, .bg-anim::after{
+      content:"";
+      position:fixed; inset:-50vh -50vw;
+      pointer-events:none;
+      opacity:.20;
+      mix-blend-mode: screen;
+      background:
+        radial-gradient(circle at 30% 40%, color-mix(in srgb, var(--accent) 60%, transparent), transparent 55%),
+        radial-gradient(circle at 70% 20%, color-mix(in srgb, var(--accent2) 60%, transparent), transparent 55%),
+        radial-gradient(circle at 60% 80%, rgba(255,255,255,.18), transparent 45%);
+      filter: blur(26px);
+      animation: floatBG 14s ease-in-out infinite alternate;
+    }
+    .bg-anim::after{
+      opacity:.10;
+      filter: blur(34px);
+      animation-duration: 20s;
+      animation-direction: alternate-reverse;
+    }
+    @keyframes floatBG{
+      from{transform:translate3d(-2%, -1%, 0) scale(1)}
+      to{transform:translate3d(2%, 1%, 0) scale(1.05)}
+    }
+
+    /* Scanlines + noise */
+    .scanlines{
+      position:fixed; inset:0;
+      pointer-events:none;
+      opacity:.14;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.06),
+        rgba(255,255,255,.06) 1px,
+        rgba(0,0,0,0) 3px,
+        rgba(0,0,0,0) 6px
+      );
+      mix-blend-mode: overlay;
+      z-index:2;
+    }
+    .noise{
+      position:fixed; inset:0;
+      pointer-events:none;
+      opacity:.06;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+      z-index:2;
+    }
+
+    /* Loader */
+    #loader{
+      position:fixed; inset:0;
+      display:grid; place-items:center;
+      background: radial-gradient(900px 600px at 50% 20%, rgba(255,255,255,.08), transparent 55%),
+                  linear-gradient(180deg,var(--bg0),var(--bg1));
+      z-index:9999;
+      transition:opacity .55s ease, transform .55s ease;
+    }
+    #loader.hidden{opacity:0; transform:scale(1.02); pointer-events:none}
+    .loader-wrap{display:flex; flex-direction:column; align-items:center; gap:18px}
+    .ball{
+      width:92px; height:92px;
+      border-radius:999px;
+      position:relative;
+      box-shadow: 0 18px 50px rgba(0,0,0,.55);
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,.55), transparent 35%),
+        linear-gradient(#ff3a3a 0 48%, #0a0a0a 48% 52%, #f2f2f2 52% 100%);
+      border:3px solid #0a0a0a;
+      animation: wobble 1.05s ease-in-out infinite alternate;
+    }
+    .ball::before{
+      content:"";
+      position:absolute; left:50%; top:50%;
+      transform:translate(-50%,-50%);
+      width:26px; height:26px; border-radius:999px;
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.9), rgba(255,255,255,.2));
+      border:3px solid #0a0a0a;
+      box-shadow: 0 0 0 7px rgba(255,255,255,.16);
+    }
+    @keyframes wobble{
+      from{transform:translateY(0) rotate(-8deg)}
+      to{transform:translateY(-6px) rotate(9deg)}
+    }
+    #wordmark{
+      display:flex; gap:2px; align-items:flex-end;
+      font-size:44px;
+      font-weight:900;
+      letter-spacing:.02em;
+      text-shadow: 0 8px 0 rgba(0,0,0,.25);
+    }
+    #wordmark span{
+      display:inline-block;
+      animation: bounce 0.85s ease-in-out infinite;
+    }
+    #wordmark span:nth-child(odd){animation-delay:.08s}
+    #wordmark span:nth-child(3n){animation-delay:.16s}
+    @keyframes bounce{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-12px)}
+    }
+    .wm-sub{font-size:12px; color:var(--muted); opacity:.85}
+    .loader-text{
+      font-weight:800;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    /* Intro */
+    #intro{
+      position:fixed; inset:0;
+      display:none;
+      background: radial-gradient(900px 600px at 50% 25%, rgba(255,255,255,.10), transparent 55%),
+                  linear-gradient(180deg,var(--bg0),var(--bg1));
+      z-index:9990;
+      padding:22px;
+    }
+    #intro.active{display:grid; place-items:center}
+    .intro-card{
+      width:min(980px, 100%);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 88%, transparent), color-mix(in srgb, var(--card) 74%, transparent));
+      border:1px solid color-mix(in srgb, var(--stroke) 75%, transparent);
+      border-radius:var(--radius2);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .intro-head{
+      padding:22px 22px 0;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:14px;
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap:10px;
+      padding:10px 12px;
+      border-radius:999px;
+      background: color-mix(in srgb, var(--accent) 16%, transparent);
+      border:1px solid color-mix(in srgb, var(--accent) 38%, transparent);
+      color:var(--text);
+      font-weight:800;
+      font-size:12px;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+    }
+    .intro-title{padding:0 22px 14px;}
+    .intro-title h1{
+      margin:10px 0 0;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height:1.05;
+      letter-spacing:-.02em;
+    }
+    .intro-title .highlight{
+      background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 70%, #fff), color-mix(in srgb, var(--accent2) 70%, #fff));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+    .intro-title p{margin:10px 0 0; color:var(--muted); max-width:72ch}
+
+    .choose{
+      padding:18px 22px 24px;
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap:14px;
+    }
+    @media (max-width:860px){
+      .choose{grid-template-columns:1fr;}
+      #wordmark{font-size:38px}
+    }
+    .pick{
+      border-radius:22px;
+      border:1px solid color-mix(in srgb, var(--stroke) 75%, transparent);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      padding:16px;
+      cursor:pointer;
+      transition: transform .15s ease, border-color .15s ease;
+      min-height:148px;
+      text-align:left;
+    }
+    .pick:hover{transform: translateY(-2px); border-color: color-mix(in srgb, var(--accent) 50%, var(--stroke));}
+    .pick h3{margin:0; font-size:18px}
+    .type{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:800;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+    .creature{width:92px; height:92px; margin-top:10px; filter: drop-shadow(0 18px 26px rgba(0,0,0,.35));}
+    .pick small{display:block; color:var(--muted); margin-top:8px; line-height:1.3}
+
+    /* Header */
+    header{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter: blur(10px);
+      background: color-mix(in srgb, var(--bg0) 65%, transparent);
+      border-bottom:1px solid color-mix(in srgb, var(--stroke) 55%, transparent);
+    }
+    .nav{
+      width:min(1100px, 100%);
+      margin:0 auto;
+      padding:14px 16px;
+      display:flex; align-items:center; justify-content:space-between; gap:14px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      font-weight:900;
+      letter-spacing:-.02em;
+      white-space:nowrap;
+    }
+    .brand .dot{
+      width:12px; height:12px; border-radius:999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent);
+    }
+    nav#menu{
+      display:flex;
+      gap:6px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+    nav#menu a{
+      color:var(--muted);
+      text-decoration:none;
+      font-weight:800;
+      font-size:13px;
+      padding:8px 10px;
+      border-radius:999px;
+    }
+    nav#menu a:hover{color:var(--text); background: color-mix(in srgb, var(--accent) 14%, transparent);}
+
+    .actions{display:flex; align-items:center; gap:10px;}
+    .btn{
+      border:1px solid color-mix(in srgb, var(--stroke) 70%, transparent);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      color:var(--text);
+      border-radius:999px;
+      padding:9px 12px;
+      font-weight:900;
+      cursor:pointer;
+      transition: transform .12s ease, border-color .12s ease;
+    }
+    .btn:hover{transform:translateY(-1px); border-color: color-mix(in srgb, var(--accent) 55%, var(--stroke))}
+    .btn.ghost{background:transparent}
+    .btn.primary{
+      background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 80%, #fff 0%), color-mix(in srgb, var(--accent2) 70%, #fff 0%));
+      color:#0B1022;
+      border-color: transparent;
+    }
+
+    /* Hamburger */
+    #menuBtn{display:none}
+    @media (max-width: 820px){
+      nav#menu{display:none;}
+      #menuBtn{display:inline-flex;}
+
+      nav#menu{
+        display:block;
+        position:fixed;
+        top:0; right:-340px;
+        width:min(340px, 86vw);
+        height:100vh;
+        padding:18px;
+        background: color-mix(in srgb, var(--bg0) 88%, transparent);
+        border-left:1px solid color-mix(in srgb, var(--stroke) 60%, transparent);
+        backdrop-filter: blur(12px);
+        transition:right .22s ease;
+        z-index:1200;
+      }
+      nav#menu.open{right:0}
+      nav#menu a{
+        display:block;
+        padding:12px 12px;
+        margin:8px 0;
+        border-radius:14px;
+        background: rgba(255,255,255,.04);
+        color:var(--text);
+      }
+    }
+
+    main{
+      width:min(1100px, 100%);
+      margin:0 auto;
+      padding:22px 16px 70px;
+      position:relative;
+      z-index:3;
+    }
+
+    /* Hero */
+    .hero{
+      margin-top:14px;
+      border-radius:var(--radius2);
+      border:1px solid color-mix(in srgb, var(--stroke) 75%, transparent);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 88%, transparent), color-mix(in srgb, var(--card) 70%, transparent));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .hero::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(500px 260px at 20% 30%, color-mix(in srgb, var(--accent) 25%, transparent), transparent 65%),
+        radial-gradient(400px 220px at 80% 25%, color-mix(in srgb, var(--accent2) 22%, transparent), transparent 65%);
+      opacity:.8;
+      pointer-events:none;
+    }
+    .hero-inner{
+      position:relative;
+      padding:26px;
+      display:grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap:18px;
+      align-items:start;
+    }
+    @media (max-width:900px){
+      .hero-inner{grid-template-columns:1fr;}
+    }
+    .hero h1{
+      margin:0;
+      font-size: clamp(30px, 4.2vw, 54px);
+      line-height:1.02;
+      letter-spacing:-.03em;
+    }
+    .hero p{margin:12px 0 0; color:var(--muted); max-width:70ch}
+    .tagline{
+      margin-top:14px;
+      font-weight:950;
+      letter-spacing:-.02em;
+      font-size: clamp(16px, 2.2vw, 20px);
+    }
+    .tagline .hl{
+      background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 85%, #fff), color-mix(in srgb, var(--accent2) 85%, #fff));
+      -webkit-background-clip:text; background-clip:text;
+      color:transparent;
+    }
+
+    /* Pokedex card */
+    .pokedex{
+      border-radius:22px;
+      border:1px solid color-mix(in srgb, var(--stroke) 75%, transparent);
+      background: linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.06));
+      padding:14px;
+      position:relative;
+      overflow:hidden;
+    }
+    [data-theme="light"] .pokedex{
+      background: linear-gradient(180deg, rgba(255,255,255,.65), rgba(255,255,255,.35));
+    }
+    .screen{
+      border-radius:16px;
+      border:1px solid color-mix(in srgb, var(--accent) 35%, var(--stroke));
+      background: radial-gradient(400px 220px at 20% 20%, rgba(255,255,255,.10), transparent 60%),
+                  linear-gradient(180deg, color-mix(in srgb, var(--bg0) 75%, transparent), color-mix(in srgb, var(--bg1) 65%, transparent));
+      padding:14px;
+      position:relative;
+      overflow:hidden;
+      min-height:140px;
+    }
+    .screen .scan{
+      position:absolute; inset:-20%;
+      background: linear-gradient(to bottom, transparent, rgba(255,255,255,.12), transparent);
+      transform: translateY(-40%);
+      animation: scan 3.8s ease-in-out infinite;
+      opacity:.6;
+    }
+    @keyframes scan{
+      0%{transform:translateY(-40%)}
+      50%{transform:translateY(40%)}
+      100%{transform:translateY(-40%)}
+    }
+    .row{position:relative; display:flex; align-items:center; justify-content:space-between; gap:10px;}
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid color-mix(in srgb, var(--stroke) 75%, transparent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      font-weight:950;
+      font-size:12px;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      color:var(--text);
+      white-space:nowrap;
+    }
+    .timer{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:10px;
+      margin-top:12px;
+    }
+    .tbox{
+      border-radius:14px;
+      border:1px solid color-mix(in srgb, var(--stroke) 75%, transparent);
+      background: rgba(255,255,255,.04);
+      padding:10px;
+      text-align:center;
+    }
+    .tbox b{display:block; font-size:22px}
+    .tbox span{display:block; font-size:11px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase}
+
+    section{
+      margin-top:18px;
+      border-radius:var(--radius2);
+      border:1px solid color-mix(in srgb, var(--stroke) 75%, transparent);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 88%, transparent), color-mix(in srgb, var(--card) 70%, transparent));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .sec-h{padding:18px 20px 0; display:flex; align-items:flex-start; justify-content:space-between; gap:12px;}
+    section h2{margin:0; font-size:18px; letter-spacing:-.01em}
+    section p{margin:10px 0 0; color:var(--muted)}
+    .sec-b{padding:16px 20px 20px}
+
+    /* Forms */
+    form{display:grid; gap:12px;}
+    .grid2{display:grid; gap:12px; grid-template-columns:1fr 1fr}
+    @media (max-width:720px){.grid2{grid-template-columns:1fr}}
+    label{display:grid; gap:8px; font-weight:900; font-size:13px}
+    input, textarea, select{
+      width:100%;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid color-mix(in srgb, var(--stroke) 70%, transparent);
+      background: rgba(255,255,255,.04);
+      color:var(--text);
+      outline:none;
+    }
+    [data-theme="light"] input, [data-theme="light"] textarea, [data-theme="light"] select{background: rgba(255,255,255,.55);}
+    input:focus, textarea:focus, select:focus{box-shadow: var(--ring); border-color: color-mix(in srgb, var(--accent) 55%, var(--stroke))}
+    textarea{min-height:92px; resize:vertical}
+
+    .team-picks{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width:820px){.team-picks{grid-template-columns:1fr}}
+    .team-opt{
+      border-radius:18px;
+      border:1px solid color-mix(in srgb, var(--stroke) 75%, transparent);
+      background: rgba(255,255,255,.04);
+      padding:12px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      cursor:pointer;
+      transition: transform .12s ease, border-color .12s ease;
+    }
+    .team-opt:hover{transform:translateY(-1px); border-color: color-mix(in srgb, var(--accent) 55%, var(--stroke))}
+    .team-opt input{display:none}
+    .team-opt .meta{display:flex; flex-direction:column; gap:2px}
+    .team-opt .meta b{font-size:14px}
+    .team-opt .meta span{font-size:11px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase}
+    .team-opt .ico{width:56px; height:56px}
+    .team-opt.active{box-shadow: var(--ring); border-color: color-mix(in srgb, var(--accent) 70%, var(--stroke));}
+
+    .note{font-size:12px; color:var(--muted); margin-top:8px; line-height:1.35;}
+    .toast{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid color-mix(in srgb, var(--stroke) 75%, transparent);
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      display:none;
+      font-weight:800;
+    }
+
+    /* Cards grid */
+    .cards{display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px;}
+    @media (max-width:980px){.cards{grid-template-columns:1fr}}
+    .card{
+      border-radius:18px;
+      border:1px solid color-mix(in srgb, var(--stroke) 75%, transparent);
+      background: rgba(255,255,255,.03);
+      padding:14px;
+    }
+    .card h3{margin:0; font-size:14px}
+    .card p{margin:8px 0 0; color:var(--muted); font-size:13px; line-height:1.35}
+
+    /* Map */
+    #map{height: 320px; border-radius:18px; overflow:hidden; border:1px solid color-mix(in srgb, var(--stroke) 75%, transparent)}
+    .map-actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:10px}
+
+    /* Gallery */
+    .gallery{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width:980px){.gallery{grid-template-columns: repeat(2, 1fr)}}
+    .ph{
+      border-radius:18px;
+      border:1px dashed color-mix(in srgb, var(--stroke) 75%, transparent);
+      background: rgba(255,255,255,.03);
+      aspect-ratio: 1 / 1;
+      display:grid; place-items:center;
+      color:var(--muted);
+      cursor:pointer;
+      position:relative;
+      overflow:hidden;
+    }
+    .ph img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.02);transition:transform .2s ease;}
+    .ph:hover img{transform:scale(1.08)}
+    .lightbox{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.75);
+      display:none;
+      place-items:center;
+      z-index:12000;
+      padding:22px;
+    }
+    .lightbox.active{display:grid}
+    .lightbox img{max-width:min(980px, 100%); max-height: 82vh; border-radius:18px; box-shadow: var(--shadow); border:1px solid rgba(255,255,255,.12);}
+
+    /* Success Pokédex */
+    .successOverlay{
+      position:fixed; inset:0;
+      display:none;
+      place-items:center;
+      background: rgba(0,0,0,.55);
+      z-index:14000;
+      padding:18px;
+    }
+    .successOverlay.active{display:grid}
+    .successCard{
+      width:min(560px, 92vw);
+      border-radius:22px;
+      border:1px solid color-mix(in srgb, var(--accent) 45%, var(--stroke));
+      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, transparent), color-mix(in srgb, var(--card) 75%, transparent));
+      box-shadow: var(--shadow);
+      padding:16px 18px;
+      position:relative;
+      overflow:hidden;
+    }
+    .pulseDot{
+      width:10px; height:10px; border-radius:999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 35%, transparent);
+      animation: pulse 1.2s ease-out infinite;
+      margin-bottom:10px;
+    }
+    @keyframes pulse{
+      0%{ box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 35%, transparent); }
+      100%{ box-shadow: 0 0 0 18px transparent; }
+    }
+    .successMsg{font-weight:950; font-size:18px; line-height:1.2}
+    .successStamp{
+      margin-top:10px;
+      display:inline-flex;
+      gap:8px; align-items:center;
+      padding:8px 10px;
+      border-radius:999px;
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      border:1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+      font-weight:950;
+      letter-spacing:.02em;
+    }
+
+    /* FAQ details */
+    details.card summary{
+      cursor:pointer;
+      list-style:none;
+      display:flex; justify-content:space-between; align-items:center;
+      font-weight:950;
+    }
+    details.card summary::-webkit-details-marker{display:none}
+    details.card summary::after{content:"▾"; color:var(--muted); font-weight:950}
+    details[open].card summary::after{content:"▴"}
+
+    /* QR box */
+    #qrBox{margin-top:10px; width:140px; height:140px; border-radius:14px; overflow:hidden; border:1px solid color-mix(in srgb, var(--stroke) 70%, transparent); background:#fff; padding:8px;}
+
+    /* Card mode */
+    body.card-mode #galeria,
+    body.card-mode #tematica,
+    body.card-mode #info,
+    body.card-mode #faq,
+    body.card-mode #juegos,
+    body.card-mode #regalos { display:none; }
+
+    footer{margin-top:18px; color:var(--muted); font-size:12px; text-align:center; padding:16px 0 0;}
+
+    /* Print mode */
+    @media print{
+      header, .scanlines, .noise, #intro, #loader, .bg-anim::before, .bg-anim::after, .lightbox, .successOverlay{display:none !important}
+      body{background:#fff; color:#000}
+      section, .hero{box-shadow:none; border:1px solid #ddd; background:#fff}
+      a{color:#000; text-decoration:none}
+      .btn{display:none}
+      main{padding:0}
+      .hero-inner{grid-template-columns:1fr}
+      .pokedex{border:1px solid #ddd}
+      .screen{background:#fff}
+    }
+  </style>
+</head>
+
+<body class="bg-anim" data-theme="dark">
+  <div class="scanlines"></div>
+  <div class="noise"></div>
+
+  <!-- Loader -->
+  <div id="loader" aria-label="Cargando">
+    <div class="loader-wrap">
+      <div class="ball" aria-hidden="true"></div>
+      <div id="wordmark" aria-hidden="true">
+        <span>P</span><span>O</span><span>K</span><span>É</span><span>M</span><span>O</span><span>N</span>
+      </div>
+      <div class="wm-sub">Cargando la Pokédex del evento…</div>
+      <div class="loader-text">Baby Shower · Massimo Gonzalo</div>
+    </div>
+  </div>
+
+  <!-- Intro selection -->
+  <div id="intro" role="dialog" aria-modal="true" aria-label="Selecciona tu Pokémon">
+    <div class="intro-card">
+      <div class="intro-head">
+        <div class="badge">🎮 Juegos por equipos · Elige tu compañero</div>
+        <button class="btn ghost" id="skipIntro" title="Elegir luego">Omitir</button>
+      </div>
+      <div class="intro-title">
+        <h1><span class="highlight">Un nuevo entrenador</span> está a punto de aparecer.</h1>
+        <p>
+          Selecciona tu Pokémon para asignarte un equipo. La web adaptará colores y estilo a tu elección,
+          y la confirmación RSVP guardará tu equipo.
+        </p>
+      </div>
+
+      <div class="choose">
+        <button class="pick" data-team="bulba" type="button">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+            <h3>Bulbasaur</h3>
+            <div class="type">🌿 Planta</div>
+          </div>
+          <svg class="creature" viewBox="0 0 128 128" aria-hidden="true">
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#4FE39A"/><stop offset="1" stop-color="#1AAE78"/>
+              </linearGradient>
+            </defs>
+            <path d="M64 18c18 0 34 15 34 36 0 29-22 52-34 52S30 83 30 54c0-21 16-36 34-36Z" fill="url(#g1)" opacity=".95"/>
+            <path d="M48 26c-9 8-10 18-4 24 8 8 21 1 28-10-6-10-14-16-24-14Z" fill="#2C7E5D" opacity=".55"/>
+            <path d="M74 28c8 8 10 17 3 24-8 8-20 2-27-8 6-10 13-17 24-16Z" fill="#2C7E5D" opacity=".55"/>
+            <circle cx="48" cy="62" r="6" fill="#0B1022" opacity=".65"/>
+            <circle cx="80" cy="62" r="6" fill="#0B1022" opacity=".65"/>
+          </svg>
+          <small>Equipo de estrategia y calma. Acentos verdes + cian.</small>
+        </button>
+
+        <button class="pick" data-team="char" type="button">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+            <h3>Charmander</h3>
+            <div class="type">🔥 Fuego</div>
+          </div>
+          <svg class="creature" viewBox="0 0 128 128" aria-hidden="true">
+            <defs>
+              <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#FFB24A"/><stop offset="1" stop-color="#FF4A4A"/>
+              </linearGradient>
+            </defs>
+            <path d="M64 18c18 0 34 15 34 36 0 29-22 52-34 52S30 83 30 54c0-21 16-36 34-36Z" fill="url(#g2)" opacity=".95"/>
+            <path d="M92 78c14 6 14 20 0 26-8 3-16 1-22-4 10-2 14-10 12-22Z" fill="#FF4A4A" opacity=".7"/>
+            <path d="M96 96c10 2 13 12 4 18-6 4-12 3-17-1 8-2 12-7 13-17Z" fill="#FFD24A" opacity=".7"/>
+            <circle cx="48" cy="62" r="6" fill="#0B1022" opacity=".65"/>
+            <circle cx="80" cy="62" r="6" fill="#0B1022" opacity=".65"/>
+          </svg>
+          <small>Equipo de energía y velocidad. Acentos naranja + rojo.</small>
+        </button>
+
+        <button class="pick" data-team="squirt" type="button">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+            <h3>Squirtle</h3>
+            <div class="type">💧 Agua</div>
+          </div>
+          <svg class="creature" viewBox="0 0 128 128" aria-hidden="true">
+            <defs>
+              <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#2BD1FF"/><stop offset="1" stop-color="#3B7CFF"/>
+              </linearGradient>
+            </defs>
+            <path d="M64 18c18 0 34 15 34 36 0 29-22 52-34 52S30 83 30 54c0-21 16-36 34-36Z" fill="url(#g3)" opacity=".95"/>
+            <path d="M36 78c-10 6-12 18-2 26 8 6 18 5 26-1-10-3-15-12-14-25Z" fill="#2BD1FF" opacity=".55"/>
+            <path d="M94 78c10 6 12 18 2 26-8 6-18 5-26-1 10-3 15-12 14-25Z" fill="#2BD1FF" opacity=".55"/>
+            <circle cx="48" cy="62" r="6" fill="#0B1022" opacity=".65"/>
+            <circle cx="80" cy="62" r="6" fill="#0B1022" opacity=".65"/>
+          </svg>
+          <small>Equipo de coordinación. Acentos azul + cian.</small>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="nav">
+      <div class="brand">
+        <div class="dot" aria-hidden="true"></div>
+        <span>Baby Shower · <b>Massimo Gonzalo</b></span>
+      </div>
+
+      <nav id="menu" aria-label="Secciones">
+        <a href="#rsvp">RSVP</a>
+        <a href="#llegar">Cómo llegar</a>
+        <a href="#regalos">Regalos</a>
+        <a href="#galeria">Galería</a>
+        <a href="#tematica">Temática</a>
+        <a href="#juegos">Juegos</a>
+        <a href="#faq">FAQ</a>
+        <a href="#info">Info</a>
+      </nav>
+
+      <div class="actions">
+        <button class="btn ghost" id="menuBtn" aria-label="Abrir menú" aria-expanded="false">☰</button>
+        <button class="btn ghost" id="teamBtn" title="Cambiar equipo">Equipo</button>
+        <button class="btn ghost" id="themeBtn" title="Cambiar modo">🌙/☀️</button>
+        <button class="btn ghost" id="cardBtn" title="Modo tarjeta">🪪 Tarjeta</button>
+        <button class="btn" id="printBtn" title="Imprimir tarjeta">Imprimir</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <div class="hero" id="top">
+      <div class="hero-inner">
+        <div>
+          <h1>¡Se viene el evento de <span style="color:var(--accent)">Massimo Gonzalo</span>! ✨</h1>
+          <p>
+            Todo en un sitio: <b>cuenta atrás</b>, <b>confirmación</b>, ubicación, regalos, equipos y más.
+          </p>
+          <div class="tagline">👉 <span class="hl">Un nuevo entrenador está a punto de aparecer.</span></div>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:16px">
+            <a class="btn primary" href="#rsvp">Confirmar asistencia</a>
+            <a class="btn" href="#llegar">Ver ubicación</a>
+          </div>
+
+          <div class="card" style="margin-top:14px">
+            <h3>📅 Añadir al calendario</h3>
+            <p>Un click y listo: Apple/Google/Outlook/M365.</p>
+            <add-to-calendar-button
+              name="Baby Shower · Massimo Gonzalo"
+              options="['Apple','Google','iCal','Microsoft365','Outlook.com']"
+              startDate="2026-06-20"
+              startTime="17:00"
+              endTime="20:00"
+              timeZone="Europe/Madrid"
+              location="(Edita CONFIG.placeName)"
+              description="Un nuevo entrenador está a punto de aparecer. Confirma tu asistencia en la web."
+              trigger="click"
+              hideTextLabelButton="true"
+            ></add-to-calendar-button>
+            <p class="note">Edita la fecha/hora y dirección en el bloque CONFIG del JS.</p>
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <h3>🔗 Comparte la invitación (QR)</h3>
+            <p>Escanéalo y envía el link a quien falte.</p>
+            <div id="qrBox"></div>
+            <p class="note" id="shareUrlText"></p>
+          </div>
+        </div>
+
+        <div class="pokedex" aria-label="Pokédex">
+          <div class="screen">
+            <div class="scan"></div>
+            <div class="row">
+              <div class="chip"><span id="teamEmoji">🌿</span> <strong id="teamName">Equipo Planta</strong></div>
+              <div class="chip">Evento <span id="eventLabel">—</span></div>
+            </div>
+            <div class="timer" aria-label="Cuenta atrás">
+              <div class="tbox"><b id="dd">00</b><span>Días</span></div>
+              <div class="tbox"><b id="hh">00</b><span>Horas</span></div>
+              <div class="tbox"><b id="mm">00</b><span>Min</span></div>
+              <div class="tbox"><b id="ss">00</b><span>Seg</span></div>
+            </div>
+          </div>
+          <p class="note" style="margin:10px 2px 0">
+            Tu equipo se guarda en este dispositivo. Puedes cambiarlo cuando quieras.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RSVP -->
+    <section id="rsvp">
+      <div class="sec-h">
+        <div>
+          <h2>Confirmación de asistencia (RSVP)</h2>
+          <p>Nombre, total asistentes (1–5), notas y tu equipo. Se envía por email vía Formspree.</p>
+        </div>
+        <div class="chip">⚡ AJAX · Sin recargas</div>
+      </div>
+
+      <div class="sec-b">
+        <form id="rsvpForm" action="https://formspree.io/f/xojkpyknd" method="POST">
+          <!-- Honeypot anti-spam -->
+          <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off"/>
+
+          <!-- Campos ocultos -->
+          <input type="hidden" name="team" id="teamHidden" value="" />
+          <input type="hidden" name="source" value="BabyShower Massimo Gonzalo" />
+
+          <div class="grid2">
+            <label>Nombre y apellidos
+              <input name="name" required placeholder="Ej. Giancarlo Bellido" />
+            </label>
+
+            <label>Total asistentes (incluyéndote)
+              <select name="guests" required>
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </label>
+          </div>
+
+          <div>
+            <label>Tu equipo (Pokémon)
+              <div class="team-picks" id="teamPicks">
+                <div class="team-opt" data-team="bulba" tabindex="0" role="radio" aria-checked="false">
+                  <input type="radio" name="team_pick" value="Bulbasaur" />
+                  <div class="meta"><b>Bulbasaur</b><span>🌿 Planta</span></div>
+                  <svg class="ico" viewBox="0 0 64 64" aria-hidden="true">
+                    <path d="M32 8c9 0 17 8 17 18 0 15-11 28-17 28S15 41 15 26c0-10 8-18 17-18Z" fill="#4FE39A"/>
+                  </svg>
+                </div>
+
+                <div class="team-opt" data-team="char" tabindex="0" role="radio" aria-checked="false">
+                  <input type="radio" name="team_pick" value="Charmander" />
+                  <div class="meta"><b>Charmander</b><span>🔥 Fuego</span></div>
+                  <svg class="ico" viewBox="0 0 64 64" aria-hidden="true">
+                    <path d="M32 8c9 0 17 8 17 18 0 15-11 28-17 28S15 41 15 26c0-10 8-18 17-18Z" fill="#FF6A3D"/>
+                  </svg>
+                </div>
+
+                <div class="team-opt" data-team="squirt" tabindex="0" role="radio" aria-checked="false">
+                  <input type="radio" name="team_pick" value="Squirtle" />
+                  <div class="meta"><b>Squirtle</b><span>💧 Agua</span></div>
+                  <svg class="ico" viewBox="0 0 64 64" aria-hidden="true">
+                    <path d="M32 8c9 0 17 8 17 18 0 15-11 28-17 28S15 41 15 26c0-10 8-18 17-18Z" fill="#2BD1FF"/>
+                  </svg>
+                </div>
+              </div>
+            </label>
+            <div class="note">Por defecto se selecciona el equipo que elegiste al entrar.</div>
+          </div>
+
+          <label>Notas (alergias, llegada, etc.)
+            <textarea name="notes" placeholder="Ej. Alergia a frutos secos / llego 15 min tarde / voy con niños…"></textarea>
+          </label>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
+            <button class="btn primary" id="submitBtn" type="submit">Enviar RSVP</button>
+            <div class="note">Tu confirmación se envía por email y se guarda en el panel de Formspree.</div>
+          </div>
+
+          <div class="toast" id="toast"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Cómo llegar -->
+    <section id="llegar">
+      <div class="sec-h">
+        <div>
+          <h2>Cómo llegar</h2>
+          <p>Mapa interactivo + instrucciones para que nadie llegue tarde.</p>
+        </div>
+        <div class="chip">🗺️ Mapa</div>
+      </div>
+      <div class="sec-b">
+        <div id="map" aria-label="Mapa interactivo"></div>
+        <div class="map-actions">
+          <a class="btn" id="gmapsBtn" href="#" target="_blank" rel="noopener">Abrir en Google Maps</a>
+          <a class="btn" id="osmBtn" href="#" target="_blank" rel="noopener">Abrir en OpenStreetMap</a>
+        </div>
+        <div class="cards" style="margin-top:12px">
+          <div class="card">
+            <h3>Entrada</h3>
+            <p id="accessNotes">—</p>
+          </div>
+          <div class="card">
+            <h3>Hora recomendada</h3>
+            <p id="arrivalNotes">—</p>
+          </div>
+          <div class="card">
+            <h3>Referencias</h3>
+            <p id="refNotes">—</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Regalos -->
+    <section id="regalos">
+      <div class="sec-h">
+        <div>
+          <h2>Lista de regalos</h2>
+          <p>Vista previa (manual) + link a la lista completa.</p>
+        </div>
+        <div class="chip">🎁 Regalos</div>
+      </div>
+      <div class="sec-b">
+        <div class="cards">
+          <div class="card">
+            <h3>Lista principal</h3>
+            <p><a id="gift1" href="#" target="_blank" rel="noopener">Abrir lista</a></p>
+            <p class="note">Tip: añade también un QR del link si quieres.</p>
+          </div>
+          <div class="card">
+            <h3>Lista alternativa</h3>
+            <p><a id="gift2" href="#" target="_blank" rel="noopener">Abrir lista</a></p>
+          </div>
+          <div class="card">
+            <h3>Fondo / aportación</h3>
+            <p id="fundText">—</p>
+          </div>
+        </div>
+
+        <div class="cards" style="margin-top:12px">
+          <div class="card">
+            <h3>Vista previa (Top)</h3>
+            <p>Destacados de la lista (edítalos tú).</p>
+            <p><a class="btn primary" id="giftMainBtn" href="#" target="_blank" rel="noopener">Ver lista completa</a></p>
+          </div>
+          <div class="card">
+            <h3>Destacado 1</h3>
+            <p id="p1">Ej. Pack pañales.</p>
+            <p><a id="p1link" href="#" target="_blank" rel="noopener">Ver</a></p>
+          </div>
+          <div class="card">
+            <h3>Destacado 2</h3>
+            <p id="p2">Ej. Bodies 0–3 meses.</p>
+            <p><a id="p2link" href="#" target="_blank" rel="noopener">Ver</a></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Galería -->
+    <section id="galeria">
+      <div class="sec-h">
+        <div>
+          <h2>Galería del embarazo</h2>
+          <p>Rápida y perfecta en móvil. Cambia los enlaces por tus fotos.</p>
+        </div>
+        <div class="chip">📸 Galería</div>
+      </div>
+      <div class="sec-b">
+        <div class="gallery" id="gallery">
+          <div class="ph" data-src="https://images.unsplash.com/photo-1529634894392-00b1248f3a06?auto=format&fit=crop&w=1200&q=70">
+            <img src="https://images.unsplash.com/photo-1529634894392-00b1248f3a06?auto=format&fit=crop&w=600&q=70" alt="Foto 1">
+          </div>
+          <div class="ph" data-src="https://images.unsplash.com/photo-1529634806980-85c3c2d642e9?auto=format&fit=crop&w=1200&q=70">
+            <img src="https://images.unsplash.com/photo-1529634806980-85c3c2d642e9?auto=format&fit=crop&w=600&q=70" alt="Foto 2">
+          </div>
+          <div class="ph" data-src="https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=70">
+            <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=600&q=70" alt="Foto 3">
+          </div>
+          <div class="ph" data-src="https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=1200&q=70">
+            <img src="https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=600&q=70" alt="Foto 4">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Temática -->
+    <section id="tematica">
+      <div class="sec-h">
+        <div>
+          <h2>Temática y dress code</h2>
+          <p>Colores, estilo y qué ponerse para fotos perfectas.</p>
+        </div>
+        <div class="chip">👕 Dress code</div>
+      </div>
+      <div class="sec-b">
+        <div class="cards">
+          <div class="card">
+            <h3>Paleta del equipo</h3>
+            <p>La web se adapta al Pokémon elegido. Acentos: <span style="color:var(--accent);font-weight:900">primario</span> y <span style="color:var(--accent2);font-weight:900">secundario</span>.</p>
+          </div>
+          <div class="card">
+            <h3>Qué ponerse</h3>
+            <p id="dressNotes">—</p>
+          </div>
+          <div class="card">
+            <h3>Estilo</h3>
+            <p id="styleNotes">—</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Juegos -->
+    <section id="juegos">
+      <div class="sec-h">
+        <div>
+          <h2>Juegos por equipos y premios</h2>
+          <p>Al llegar, eliges Pokémon. Luego compites por puntos.</p>
+        </div>
+        <div class="chip">🎮 Equipos</div>
+      </div>
+      <div class="sec-b">
+        <div class="cards">
+          <div class="card">
+            <h3>Cómo funciona</h3>
+            <p>1) Elige Bulbasaur/Charmander/Squirtle.<br/>2) Se asigna color/pulsera.<br/>3) Sumad puntos en minijuegos.</p>
+          </div>
+          <div class="card">
+            <h3>Minijuegos</h3>
+            <p>• Quiz Pokédex<br/>• Carrera “huevo” (versión bebé)<br/>• Adivina la canción<br/>• Bingo del embarazo</p>
+          </div>
+          <div class="card">
+            <h3>Premio</h3>
+            <p>Premio al equipo ganador + foto final “Hall of Fame”.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+      <div class="sec-h">
+        <div>
+          <h2>Preguntas frecuentes</h2>
+          <p>Lo típico que se pregunta mil veces — aquí.</p>
+        </div>
+        <div class="chip">❓ FAQ</div>
+      </div>
+      <div class="sec-b">
+        <details class="card">
+          <summary>¿A qué hora debo llegar?</summary>
+          <p class="note">Recomendado: 15 min antes para formar equipos y fotos.</p>
+        </details>
+        <details class="card">
+          <summary>¿Hay parking cerca?</summary>
+          <p class="note">Sí, revisa la sección Info práctica (puedes editarlo).</p>
+        </details>
+        <details class="card">
+          <summary>¿Menú y alergias?</summary>
+          <p class="note">Indícalo en el RSVP y lo tenemos en cuenta.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- Info práctica -->
+    <section id="info">
+      <div class="sec-h">
+        <div>
+          <h2>Información práctica</h2>
+          <p>Parking, menú especial, qué llevar y dudas frecuentes.</p>
+        </div>
+        <div class="chip">✅ Todo claro</div>
+      </div>
+      <div class="sec-b">
+        <div class="cards">
+          <div class="card">
+            <h3>Parking</h3>
+            <p id="parkingNotes">—</p>
+          </div>
+          <div class="card">
+            <h3>Menú</h3>
+            <p id="menuNotes">—</p>
+          </div>
+          <div class="card">
+            <h3>Qué llevar</h3>
+            <p id="bringNotes">—</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Hecho con cariño para el Baby Shower de <b>Massimo Gonzalo</b>. · <span id="footerTeam">Equipo Planta</span>
+    </footer>
+  </main>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" aria-label="Imagen ampliada" role="dialog" aria-modal="true">
+    <img alt="Imagen ampliada" id="lbImg" />
+  </div>
+
+  <!-- Success overlay -->
+  <div id="successOverlay" class="successOverlay" aria-live="polite">
+    <div class="successCard">
+      <div class="pulseDot"></div>
+      <div id="successMsg" class="successMsg">¡Registrado en la Pokédex!</div>
+      <div id="successStamp" class="successStamp">🌿 Equipo Planta</div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    /***********************
+     * CONFIG (edita aquí) *
+     ***********************/
+    const CONFIG = {
+      // Fecha/hora exacta del evento (ISO con zona). Ej: "2026-06-20T17:00:00+02:00"
+      eventISO: "2026-06-20T17:00:00+02:00",
+      eventLabel: "Baby Shower",
+
+      // Ubicación
+      placeName: "Tu dirección exacta aquí",
+      lat: 40.4168,
+      lng: -3.7038,
+
+      // Textos prácticos
+      accessNotes: "Ej. Portal 2, timbre 4B. Subir al salón principal.",
+      arrivalNotes: "Ej. Llega 15 min antes para formar equipos y sacar fotos.",
+      refNotes: "Ej. Puerta azul, frente a la farmacia.",
+
+      // Regalos
+      giftList1: { text: "Lista Amazon", url: "https://example.com" },
+      giftList2: { text: "Lista alternativa", url: "https://example.com" },
+      fundText: "Ej. Fondo para carrito / pañales. (Opcional: Bizum/IBAN/Link).",
+
+      // Vista previa (manual) de regalos
+      preview: {
+        mainUrl: "https://example.com",
+        item1Text: "Ej. Pack pañales",
+        item1Url: "https://example.com",
+        item2Text: "Ej. Bodies 0–3 meses",
+        item2Url: "https://example.com"
+      },
+
+      // Dress code / estilo
+      dressNotes: "Casual cómodo. Si quieres, añade un detalle del color de tu equipo.",
+      styleNotes: "Estilo arcade + Pokédex + neón. Fotos por equipos al inicio.",
+
+      // Info práctica
+      parkingNotes: "Parking público a 3 min. También hay zona azul alrededor.",
+      menuNotes: "Habrá opciones variadas. Alergias o preferencias: indícalo en RSVP.",
+      bringNotes: "Solo ganas de pasarlo bien 😄"
+    };
+
+    /***********************
+     * TEAM PRESETS        *
+     ***********************/
+    const TEAM_PRESETS = {
+      bulba: { accent:"#4FE39A", accent2:"#2BD1FF", emoji:"🌿", label:"Equipo Planta", pokemon:"Bulbasaur" },
+      char:  { accent:"#FF6A3D", accent2:"#FFD24A", emoji:"🔥", label:"Equipo Fuego",  pokemon:"Charmander" },
+      squirt:{ accent:"#2BD1FF", accent2:"#3B7CFF", emoji:"💧", label:"Equipo Agua",   pokemon:"Squirtle" }
+    };
+
+    const $ = (s, p=document) => p.querySelector(s);
+    const $$ = (s, p=document) => [...p.querySelectorAll(s)];
+
+    function setCSSVars(teamKey){
+      const t = TEAM_PRESETS[teamKey] || TEAM_PRESETS.bulba;
+      document.documentElement.style.setProperty("--accent", t.accent);
+      document.documentElement.style.setProperty("--accent2", t.accent2);
+
+      $("#teamEmoji").textContent = t.emoji;
+      $("#teamName").textContent = t.label;
+      $("#footerTeam").textContent = t.label;
+
+      selectRsvpTeam(teamKey);
+    }
+
+    function saveTeam(teamKey){ localStorage.setItem("teamKey", teamKey); }
+    function loadTeam(){ return localStorage.getItem("teamKey"); }
+
+    function setTheme(mode){
+      document.body.setAttribute("data-theme", mode);
+      localStorage.setItem("themeMode", mode);
+    }
+    function initTheme(){
+      const mode = localStorage.getItem("themeMode") || "dark";
+      setTheme(mode);
+    }
+
+    /***********************
+     * LOADER + INTRO      *
+     ***********************/
+    function hideLoader(){
+      const loader = $("#loader");
+      loader.classList.add("hidden");
+      setTimeout(()=> loader.remove(), 650);
+    }
+    function showIntro(){ $("#intro").classList.add("active"); }
+    function hideIntro(){ $("#intro").classList.remove("active"); }
+
+    function initIntro(){
+      const teamKey = loadTeam();
+      if(teamKey){
+        setCSSVars(teamKey);
+        return;
+      }
+      showIntro();
+    }
+
+    $$(".pick").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const teamKey = btn.dataset.team;
+        saveTeam(teamKey);
+        setCSSVars(teamKey);
+        hideIntro();
+      });
+    });
+
+    $("#skipIntro").addEventListener("click", ()=>{
+      saveTeam("bulba");
+      setCSSVars("bulba");
+      hideIntro();
+    });
+
+    $("#teamBtn").addEventListener("click", ()=> showIntro());
+
+    /***********************
+     * HAMBURGER MENU      *
+     ***********************/
+    const menuBtn = $("#menuBtn");
+    const menu = $("#menu");
+    function closeMenu(){
+      menu.classList.remove("open");
+      menuBtn.setAttribute("aria-expanded", "false");
+      document.body.style.overflow = "";
+    }
+    menuBtn.addEventListener("click", ()=>{
+      const open = menu.classList.toggle("open");
+      menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      document.body.style.overflow = open ? "hidden" : "";
+    });
+    menu.addEventListener("click", (e)=>{ if(e.target.tagName === "A") closeMenu(); });
+    window.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeMenu(); });
+
+    /***********************
+     * COUNTDOWN           *
+     ***********************/
+    function pad(n){ return String(n).padStart(2,"0"); }
+    function tickCountdown(){
+      const target = new Date(CONFIG.eventISO).getTime();
+      const now = Date.now();
+      const diff = Math.max(0, target - now);
+      const d = Math.floor(diff / (1000*60*60*24));
+      const h = Math.floor((diff / (1000*60*60)) % 24);
+      const m = Math.floor((diff / (1000*60)) % 60);
+      const s = Math.floor((diff / 1000) % 60);
+
+      $("#dd").textContent = pad(d);
+      $("#hh").textContent = pad(h);
+      $("#mm").textContent = pad(m);
+      $("#ss").textContent = pad(s);
+      $("#eventLabel").textContent = CONFIG.eventLabel;
+    }
+
+    /***********************
+     * MAP (Leaflet)       *
+     ***********************/
+    function initMap(){
+      const map = L.map("map", { scrollWheelZoom:false }).setView([CONFIG.lat, CONFIG.lng], 15);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
+
+      const marker = L.marker([CONFIG.lat, CONFIG.lng]).addTo(map);
+      marker.bindPopup(`<b>${CONFIG.placeName}</b><br/>¡Te esperamos!`).openPopup();
+
+      $("#gmapsBtn").href = `https://www.google.com/maps?q=${CONFIG.lat},${CONFIG.lng}`;
+      $("#osmBtn").href = `https://www.openstreetmap.org/?mlat=${CONFIG.lat}&mlon=${CONFIG.lng}#map=16/${CONFIG.lat}/${CONFIG.lng}`;
+
+      $("#accessNotes").textContent = CONFIG.accessNotes;
+      $("#arrivalNotes").textContent = CONFIG.arrivalNotes;
+      $("#refNotes").textContent = CONFIG.refNotes;
+    }
+
+    /***********************
+     * TEXTS / GIFTS       *
+     ***********************/
+    function initTexts(){
+      $("#gift1").textContent = CONFIG.giftList1.text;
+      $("#gift1").href = CONFIG.giftList1.url;
+
+      $("#gift2").textContent = CONFIG.giftList2.text;
+      $("#gift2").href = CONFIG.giftList2.url;
+
+      $("#fundText").textContent = CONFIG.fundText;
+
+      $("#giftMainBtn").href = CONFIG.preview.mainUrl;
+      $("#p1").textContent = CONFIG.preview.item1Text;
+      $("#p1link").href = CONFIG.preview.item1Url;
+      $("#p2").textContent = CONFIG.preview.item2Text;
+      $("#p2link").href = CONFIG.preview.item2Url;
+
+      $("#dressNotes").textContent = CONFIG.dressNotes;
+      $("#styleNotes").textContent = CONFIG.styleNotes;
+
+      $("#parkingNotes").textContent = CONFIG.parkingNotes;
+      $("#menuNotes").textContent = CONFIG.menuNotes;
+      $("#bringNotes").textContent = CONFIG.bringNotes;
+    }
+
+    /***********************
+     * QR SHARE            *
+     ***********************/
+    function initQR(){
+      const url = window.location.href;
+      $("#shareUrlText").textContent = url;
+      const el = $("#qrBox");
+      el.innerHTML = "";
+      new QRCode(el, {
+        text: url,
+        width: 124,
+        height: 124,
+        colorDark: "#111111",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+
+    /***********************
+     * GALLERY LIGHTBOX    *
+     ***********************/
+    function initGallery(){
+      $("#gallery").addEventListener("click", (e)=>{
+        const ph = e.target.closest(".ph");
+        if(!ph) return;
+        $("#lbImg").src = ph.dataset.src;
+        $("#lightbox").classList.add("active");
+      });
+      $("#lightbox").addEventListener("click", ()=> $("#lightbox").classList.remove("active"));
+    }
+
+    /***********************
+     * RSVP TEAM UI        *
+     ***********************/
+    function selectRsvpTeam(teamKey){
+      $$(".team-opt").forEach(opt=>{
+        const active = opt.dataset.team === teamKey;
+        opt.classList.toggle("active", active);
+        opt.setAttribute("aria-checked", active ? "true" : "false");
+        const radio = $("input[type=radio]", opt);
+        radio.checked = active;
+      });
+    }
+
+    function initRsvpTeamPicks(){
+      $$(".team-opt").forEach(opt=>{
+        const activate = ()=>{
+          const teamKey = opt.dataset.team;
+          // Cambia tema global + guarda
+          saveTeam(teamKey);
+          setCSSVars(teamKey);
+        };
+        opt.addEventListener("click", activate);
+        opt.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); activate(); }});
+      });
+
+      // Sincroniza con equipo global
+      const globalTeam = loadTeam() || "bulba";
+      selectRsvpTeam(globalTeam);
+    }
+
+    /***********************
+     * RSVP AJAX Formspree *
+     ***********************/
+    const form = $("#rsvpForm");
+    const submitBtn = $("#submitBtn");
+    const toast = $("#toast");
+
+    function showToast(msg, ok=true){
+      toast.textContent = msg;
+      toast.style.display = "block";
+      toast.style.background = ok ? "color-mix(in srgb, var(--accent) 14%, transparent)" : "rgba(255,60,60,.12)";
+      toast.style.borderColor = ok ? "color-mix(in srgb, var(--accent) 38%, var(--stroke))" : "rgba(255,60,60,.35)";
+      setTimeout(()=> toast.style.display="none", 4500);
+    }
+
+    function showPokedexSuccess(payload){
+      const overlay = $("#successOverlay");
+      const msg = $("#successMsg");
+      const stamp = $("#successStamp");
+
+      const teamKey = loadTeam() || "bulba";
+      const t = TEAM_PRESETS[teamKey] || TEAM_PRESETS.bulba;
+
+      msg.innerHTML = `¡Registrado en la Pokédex!<br><span style="color:var(--muted)">Gracias, <b>${payload.name}</b> · ${payload.guests} asistentes · ${t.emoji} ${t.label}</span>`;
+      stamp.textContent = `${t.emoji} ${t.label}`;
+
+      overlay.classList.add("active");
+      setTimeout(()=> overlay.classList.remove("active"), 3500);
+    }
+
+    form.addEventListener("submit", async (e)=>{
+      e.preventDefault();
+
+      // Set hidden team as Pokemon name
+      const teamKey = loadTeam() || "bulba";
+      $("#teamHidden").value = (TEAM_PRESETS[teamKey]?.pokemon || "Bulbasaur");
+
+      const data = new FormData(form);
+
+      submitBtn.disabled = true;
+      const oldText = submitBtn.textContent;
+      submitBtn.textContent = "Enviando…";
+
+      try{
+        const res = await fetch(form.action, {
+          method: "POST",
+          body: data,
+          headers: { "Accept": "application/json" }
+        });
+
+        if(res.ok){
+          const payload = {
+            name: data.get("name"),
+            guests: data.get("guests")
+          };
+          form.reset();
+          // Restaurar selección equipo actual después del reset
+          selectRsvpTeam(teamKey);
+
+          showToast("¡RSVP enviado! Te esperamos 🔥", true);
+          showPokedexSuccess(payload);
+          return;
+        }
+
+        if(res.status === 429){
+          showToast("Demasiados envíos seguidos. Espera un momento y prueba otra vez.", false);
+          return;
+        }
+
+        let errText = "Ups, hubo un problema enviando el RSVP.";
+        try{
+          const json = await res.json();
+          if(json?.errors?.length){
+            errText = json.errors.map(x => x.message).join(" · ");
+          }
+        }catch(_){}
+        showToast(errText, false);
+
+      }catch(err){
+        console.error(err);
+        showToast("No pude conectar para enviar el RSVP. Revisa tu conexión.", false);
+      }finally{
+        submitBtn.disabled = false;
+        submitBtn.textContent = oldText;
+      }
+    });
+
+    /***********************
+     * Theme + card mode   *
+     ***********************/
+    $("#themeBtn").addEventListener("click", ()=>{
+      const current = document.body.getAttribute("data-theme") || "dark";
+      setTheme(current === "dark" ? "light" : "dark");
+    });
+
+    $("#printBtn").addEventListener("click", ()=> window.print());
+
+    $("#cardBtn").addEventListener("click", ()=>{
+      document.body.classList.toggle("card-mode");
+      localStorage.setItem("cardMode", document.body.classList.contains("card-mode") ? "1" : "0");
+    });
+
+    /***********************
+     * INIT                *
+     ***********************/
+    window.addEventListener("load", ()=>{
+      initTheme();
+      initTexts();
+      initGallery();
+      initRsvpTeamPicks();
+
+      // Restore card mode
+      if(localStorage.getItem("cardMode")==="1") document.body.classList.add("card-mode");
+
+      // Countdown
+      tickCountdown();
+      setInterval(tickCountdown, 1000);
+
+      // Map
+      initMap();
+
+      // QR
+      initQR();
+
+      // Flow
+      setTimeout(()=>{
+        hideLoader();
+        setTimeout(initIntro, 250);
+      }, 1200);
+
+      // Apply team if exists
+      const teamKey = loadTeam() || "bulba";
+      setCSSVars(teamKey);
+    });
+  </script>
+</body>
+</html>
